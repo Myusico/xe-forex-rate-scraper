@@ -62,6 +62,17 @@ top_50_currencies = [
 async def get_exchange_rates(
     context, from_currencies: list, to_currency: str, date: str
 ):
+    """Fetches exchange rates for a given set of currencies against a base currency on a given date.
+
+    Args:
+        context: The context of the playwright browser instance.
+        from_currencies: A list of currency codes to fetch exchange rates for.
+        to_currency: The base currency to fetch exchange rates against.
+        date: The date to fetch exchange rates for in the format 'YYYY-MM-DD'.
+
+    Returns:
+        A list of exchange rates in the same order as the input currencies.
+    """
     url = f"https://www.xe.com/en-gb/currencytables/?from={to_currency}&date={date}#table-section"
     page = await context.new_page()
     await page.goto(url)
@@ -81,11 +92,16 @@ async def get_exchange_rates(
 
 
 async def main():
+    """Runs the script to fetch exchange rates from XE.com for a given set of currencies
+    against a base currency on a given date range.
+    """
+    n_currencies = 20
     to_currency = "USD"
-    from_currencies = top_50_currencies[:20]
+    from_currencies = top_50_currencies[:n_currencies]
     from_currencies.remove(to_currency)
-    start_date = "2022-10-01"
-    end_date = "2024-09-19"
+    start_date = "2022-01-01"
+    end_date = "2024-08-31"
+    sleep_time = 60
     date_list = (
         pd.date_range(start=start_date, end=end_date).strftime("%Y-%m-%d").tolist()
     )
@@ -111,10 +127,10 @@ async def main():
                 old_df = pd.read_csv(
                     f"data/to_{to_currency}_rates.csv", index_col="Date"
                 )
-                new_df=new_df.combine_first(old_df)
+                new_df = new_df.combine_first(old_df)
             new_df.to_csv(f"data/to_{to_currency}_rates.csv")
 
-            time.sleep(60)
+            time.sleep(sleep_time)  # sleep to avoid IP ban from frequent requests
 
 
 if __name__ == "__main__":
