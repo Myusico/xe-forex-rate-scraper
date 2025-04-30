@@ -1,6 +1,5 @@
 import asyncio
 import os
-import random
 import time
 from datetime import datetime, timedelta
 from io import StringIO
@@ -8,27 +7,6 @@ from pathlib import Path
 
 import pandas as pd
 from playwright.async_api import async_playwright
-
-# async def get_rate(context, to_currency: str, date: str):
-#     """Fetches exchange rates for a given set of currencies against a base currency on a given date.
-
-#     Args:
-#         context: The context of the playwright browser instance.
-#         from_currencies: A list of currency codes to fetch exchange rates for.
-#         to_currency: The base currency to fetch exchange rates against.
-#         date: The date to fetch exchange rates for in the format 'YYYY-MM-DD'.
-
-#     Returns:
-#         A list of exchange rates in the same order as the input currencies.
-#     """
-#     url = f"https://www.xe.com/en-gb/currencytables/?from={to_currency}&date={date}#table-section"
-#     page = await context.new_page()
-#     await page.goto(url)
-#     await page.wait_for_timeout(5000)
-#     table = page.locator("div#table-section").locator("table")
-#     rates = []
-#     await page.close()
-#     return rates
 
 
 async def get_rates(to_currency: str, start_date, end_date):
@@ -89,8 +67,6 @@ async def get_rates_for_date(context, to_currency: str, date: str):
     await page.wait_for_timeout(5000)
     table_locator = page.locator("div#table-section").locator("table")
     table_html = StringIO(await table_locator.evaluate("element => element.outerHTML"))
-    # table_html = await table.outer_html()
-    # print(table_html)
     day_df = pd.read_html(table_html)[0]
     day_df.set_index("Currency", inplace=True)
     await page.close()
@@ -99,5 +75,4 @@ async def get_rates_for_date(context, to_currency: str, date: str):
 
 if __name__ == "__main__":
     currency = "USD"
-    # asyncio.run(get_rates(currency, "2020-01-01", "2024-12-31"))
     asyncio.run(update_rates(currency))
