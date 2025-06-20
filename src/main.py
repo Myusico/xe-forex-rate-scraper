@@ -24,7 +24,7 @@ async def update_rates(to_currency):
     old_df = pd.read_csv(file, index_col="Date")
     old_df.index = pd.to_datetime(old_df.index)
     start_date = max(old_df.index) + timedelta(days=1)
-    end_date = datetime.now()
+    end_date = datetime.now() - timedelta(days=1)
     await get_rates(to_currency, start_date, end_date)
 
 
@@ -73,6 +73,17 @@ async def get_rates_for_date(context, to_currency: str, date: str):
     return day_df[f"{to_currency} per unit"]
 
 
+def convert_base_currency(currency: str) -> str:
+    df = pd.read_csv("data/to_USD_rates.csv", index_col="Date")
+    base_to_usd = df[currency]
+    df = df.div(base_to_usd, axis=0)
+    df[currency] /= base_to_usd
+    df.rename(columns={currency: "USD"}, inplace=True)
+    df.to_csv(f"data/to_{currency}_rates.csv")
+
+
 if __name__ == "__main__":
-    currency = "USD"
-    asyncio.run(update_rates(currency))
+    # currency = "USD"
+    # asyncio.run(update_rates(currency))
+    currency = "GBP"
+    convert_base_currency(currency)
